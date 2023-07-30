@@ -21,3 +21,7 @@ The easiest way to install is using [Package Control](https://packagecontrol.io)
 >
 > 1. call _Menu > Preferences > Browse Packages.._
 > 2. Navigate to parent folder
+
+## Requirements
+
+- Sublime Text 4126 or higher
