@@ -1,0 +1,87 @@
+%YAML 1.2
+---
+# https://www.sublimetext.com/docs/syntax.html
+# https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_writing.htm
+name: Java (Apex)
+scope: source.java.apex
+version: 2
+
+extends: Packages/Java/Java.sublime-syntax
+
+file_extensions:
+  - apex
+
+first_line_match: |-
+  (?x:
+    ^ \#! .* \b(apex)\b                      # shebang
+  | ^ \s* // .*? -\*- .*? \bapex\b .*? -\*-  # editorconfig
+  )
+
+variables:
+
+  sql_indicator: |-
+    (?x: \s* (?:
+    # dml statements
+      SELECT | INSERT | REPLACE | DELETE | TRUNCATE | UPDATE
+    # ddl statements
+    | ADD | ALTER | CREATE | DROP
+    # conditional
+    | IF \s+ (?: NOT \s+ )? EXISTS
+    # declaration
+    | DECLARE | WITH
+    ) \s )
+
+contexts:
+
+###[ CUSTOMIZED JAVA CONTEXTS ]################################################
+
+  expressions:
+    - meta_prepend: true
+    - include: apex-object-queries
+
+  class-modifiers:
+    - meta_prepend: true
+    - include: apex-sharing-modifiers
+
+  interface-modifiers:
+    - meta_prepend: true
+    - include: apex-sharing-modifiers
+
+  literal-single-quoted-strings:
+    # replace default Java
+    - match: \'
+      scope: punctuation.definition.string.begin.apex
+      push: literal-single-quoted-string-body
+
+  literal-single-quoted-string-body:
+    - meta_include_prototype: false
+    - meta_scope: meta.string.apex string.quoted.single.apex
+    - match: \'
+      scope: punctuation.definition.string.end.apex
+      pop: 1
+    - include: illegal-newline
+    - include: literal-string-escapes
+
+###[ APEX EXPRESSIONS ]########################################################
+
+  apex-object-queries:
+    - match: \[(?={{sql_indicator}})
+      scope: punctuation.section.brackets.begin.apex
+      push: apex-object-query-body
+
+  apex-object-query-body:
+    - meta_scope: meta.query.apex meta.brackets.apex
+    - meta_content_scope: source.sql.embedded.apex
+    - match: \]
+      scope: punctuation.section.brackets.end.apex
+      set: apex-object-query-index
+    - include: scope:source.sql
+      apply_prototype: true
+
+  apex-object-query-index:
+    - include: variable-item-access
+    - include: immediately-pop
+
+  apex-sharing-modifiers:
+    - match: (?:with(?:out)?|inherited|sharing)\b
+      scope: storage.modifier.sharing.apex
